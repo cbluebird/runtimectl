@@ -1,0 +1,6 @@
+database:
+  name: devboxdb
+  host: "127.0.0.1"
+  port: ""
+  user: sealos
+  pass: ""
