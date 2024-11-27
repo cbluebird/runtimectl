@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	kind    string
-	name    string
-	version string
-	image   string
-	path    string
+	kind       string
+	name       string
+	version    string
+	image      string
+	path       string
+	outputFile string
 )
 
 func newGenCmd() *cobra.Command {

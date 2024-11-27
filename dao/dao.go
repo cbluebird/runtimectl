@@ -107,3 +107,22 @@ func CreateOrUpdateTemplate(version, repoUid, image, config string) error {
 
 	return DB.Model(&model.Template{}).Where(&model.Template{UID: tmp.UID}).Updates(&template).Error
 }
+
+func GetTemplates() (map[string]string, error) {
+	var templates []model.Template
+	result := DB.Find(&templates)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	data := make(map[string]string)
+	for _, template := range templates {
+		var repo model.TemplateRepository
+		if err := DB.First(&repo, "uid = ?", template.TemplateRepositoryUid).Error; err != nil {
+			return nil, err
+		}
+		key := fmt.Sprintf("%s-%s", repo.Name, template.Name)
+		data[key] = template.UID
+	}
+	return data, nil
+}
