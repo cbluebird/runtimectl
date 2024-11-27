@@ -15,6 +15,7 @@ var (
 	name    string
 	version string
 	image   string
+	path    string
 )
 
 func newGenCmd() *cobra.Command {
@@ -28,12 +29,13 @@ func newGenCmd() *cobra.Command {
 	cmd.Flags().StringVar(&name, "name", "", "Name of the runtime")
 	cmd.Flags().StringVar(&version, "version", "", "Version of the runtime")
 	cmd.Flags().StringVar(&image, "image", "", "Image of the runtime")
+	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
 
 	return cmd
 }
 
 func genAction(cmd *cobra.Command, args []string) error {
-	config := util.ParseJson()
+	config := util.ParseJson(path)
 	if config == nil {
 		return fmt.Errorf("failed to parse config.json")
 	}
@@ -112,5 +114,5 @@ func getRuntimeVersions(config *model.Config, kind string) []model.RuntimeVersio
 
 func saveConfig(config *model.Config) {
 	file, _ := json.MarshalIndent(config, "", "  ")
-	_ = ioutil.WriteFile("config.json", file, 0644)
+	_ = ioutil.WriteFile(path, file, 0644)
 }

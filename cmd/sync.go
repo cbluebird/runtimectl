@@ -10,17 +10,20 @@ import (
 )
 
 func newSyncCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "sync",
 		Short: "sync the database",
 		RunE:  syncAction,
 	}
+
+	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
+	return cmd
 }
 
 func syncAction(cmd *cobra.Command, args []string) error {
 	config.Init()
 	dao.Init()
-	config := util.ParseJson()
+	config := util.ParseJson(path)
 	if len(config.Runtime.Framework) != 0 {
 		if err := sync("FRAMEWORK", config.Runtime.Framework); err != nil {
 			fmt.Println("Error syncing framework:", err)

@@ -8,9 +8,9 @@ import (
 	"runtimectl/model"
 )
 
-func ParseJson() *model.Config {
+func ParseJson(path string) *model.Config {
 	// Open the JSON file
-	jsonFile, err := os.Open("config.json")
+	jsonFile, err := os.Open(path)
 	if err != nil {
 		fmt.Println("Error opening JSON file:", err)
 		return nil
