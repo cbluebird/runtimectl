@@ -58,7 +58,9 @@ func CreateOrUpdateTemplateRepository(name, kind string) error {
 	repo := model.TemplateRepository{
 		Name:            name,
 		Kind:            kind,
+		IconId:          name,
 		OrganizationUid: organization.UID,
+		IsPublic:        true,
 	}
 	return DB.Create(&repo).Error
 }
