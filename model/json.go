@@ -12,10 +12,10 @@ type RuntimeVersion struct {
 }
 
 type Runtime struct {
-	Framework []RuntimeVersion `json:"framework"`
-	Language  []RuntimeVersion `json:"language"`
-	Custom    []RuntimeVersion `json:"custom"`
-	OS        []RuntimeVersion `json:"os"`
+	Framework []RuntimeVersion `json:"Framework"`
+	Language  []RuntimeVersion `json:"Language"`
+	Custom    []RuntimeVersion `json:"Custom"`
+	OS        []RuntimeVersion `json:"OS"`
 }
 
 type Config struct {

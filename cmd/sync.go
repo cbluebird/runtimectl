@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"runtimectl/config"
 	"runtimectl/dao"
 	"runtimectl/model"
 	"runtimectl/util"
@@ -17,6 +18,7 @@ func newSyncCmd() *cobra.Command {
 }
 
 func syncAction(cmd *cobra.Command, args []string) error {
+	config.Init()
 	dao.Init()
 	config := util.ParseJson()
 	if len(config.Runtime.Framework) != 0 {

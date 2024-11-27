@@ -24,7 +24,7 @@ func newGenCmd() *cobra.Command {
 		RunE:  genAction,
 	}
 
-	cmd.Flags().StringVar(&kind, "kind", "", "Kind of runtime (framework, language, custom, os)")
+	cmd.Flags().StringVar(&kind, "kind", "", "Kind of runtime (Framework, Language, Custom, OS)")
 	cmd.Flags().StringVar(&name, "name", "", "Name of the runtime")
 	cmd.Flags().StringVar(&version, "version", "", "Version of the runtime")
 	cmd.Flags().StringVar(&image, "image", "", "Image of the runtime")
@@ -81,13 +81,13 @@ func genAction(cmd *cobra.Command, args []string) error {
 
 	// Update the config object with the modified runtimeVersions
 	switch kind {
-	case "framework":
+	case "Framework":
 		config.Runtime.Framework = runtimeVersions
-	case "language":
+	case "Language":
 		config.Runtime.Language = runtimeVersions
-	case "custom":
+	case "Custom":
 		config.Runtime.Custom = runtimeVersions
-	case "os":
+	case "OS":
 		config.Runtime.OS = runtimeVersions
 	}
 
@@ -97,13 +97,13 @@ func genAction(cmd *cobra.Command, args []string) error {
 
 func getRuntimeVersions(config *model.Config, kind string) []model.RuntimeVersion {
 	switch kind {
-	case "framework":
+	case "Framework":
 		return config.Runtime.Framework
-	case "language":
+	case "Language":
 		return config.Runtime.Language
-	case "custom":
+	case "Custom":
 		return config.Runtime.Custom
-	case "os":
+	case "OS":
 		return config.Runtime.OS
 	default:
 		return nil

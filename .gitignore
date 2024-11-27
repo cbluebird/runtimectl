@@ -27,3 +27,5 @@ go.work.sum
 db.yaml
 
 .idea
+
+runtimectl
