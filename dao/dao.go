@@ -92,7 +92,8 @@ func CreateOrUpdateTemplate(version, repoUid, image, config string) error {
 	log.Println("result:", tmp)
 
 	result = DB.Model(&model.Template{}).Where(&model.Template{
-		Name: version,
+		Name:                  version,
+		TemplateRepositoryUid: repoUid,
 	}).First(&tmp).Error
 
 	if errors.Is(result, gorm.ErrRecordNotFound) {
