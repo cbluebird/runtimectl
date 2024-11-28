@@ -7,16 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"runtimectl/model"
-	"runtimectl/util"
-)
-
-var (
-	kind       string
-	name       string
-	version    string
-	image      string
-	path       string
-	outputFile string
+	"runtimectl/pkg/util"
 )
 
 func newGenCmd() *cobra.Command {

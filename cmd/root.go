@@ -24,4 +24,5 @@ func init() {
 	rootCmd.AddCommand(newSyncCmd())
 	rootCmd.AddCommand(newGenCmd())
 	rootCmd.AddCommand(newExportCmd())
+	rootCmd.AddCommand(newPatchCmd())
 }

@@ -6,7 +6,7 @@ import (
 	"runtimectl/config"
 	"runtimectl/dao"
 	"runtimectl/model"
-	"runtimectl/util"
+	"runtimectl/pkg/util"
 )
 
 func newSyncCmd() *cobra.Command {
