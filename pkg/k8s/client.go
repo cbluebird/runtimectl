@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"log"
+	"runtimectl/dao"
 )
 
 type K8sClient struct {
@@ -34,36 +35,75 @@ func Init(path string) *K8sClient {
 	return client
 }
 
-func (sdk *K8sClient) getAllDevbox() (*unstructured.UnstructuredList, error) {
-	return sdk.DynamicClient.Resource(getDevboxSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
-}
-
 func (sdk *K8sClient) Patch() error {
-	patchData := map[string]interface{}{
-		"spec": map[string]interface{}{
-			"templateID": "newValue",
-		},
-	}
-	patchBytes, err := json.Marshal(patchData)
-	if err != nil {
-		return err
-	}
 
 	crdList, err := sdk.getAllDevbox()
 
 	for _, crd := range crdList.Items {
-		sdk.DynamicClient.Resource(getDevboxSchema()).Namespace(crd.GetNamespace()).Patch(context.Background(), crd.GetName(), types.MergePatchType, patchBytes, metav1.PatchOptions{})
+		name, version, err := sdk.getRuntimeNameAndVersion(crd.GetName(), crd.GetNamespace())
+		if err != nil {
+			return err
+		}
 
-		fmt.Printf("CRD Instance Name: %s\n", crd.GetName())
+		key := fmt.Sprintf("%s-%s", name, version)
+		templates, err := dao.GetTemplates()
+		if err != nil {
+			log.Println("Error getting templates: ", err)
+			return err
+		}
+
+		patchData := map[string]interface{}{
+			"spec": map[string]interface{}{
+				"templateID": templates[key],
+			},
+		}
+		patchBytes, err := json.Marshal(patchData)
+		if err != nil {
+			return err
+		}
+
+		_, err = sdk.DynamicClient.Resource(getDevboxSchema()).Namespace(crd.GetNamespace()).Patch(context.Background(), crd.GetName(), types.MergePatchType, patchBytes, metav1.PatchOptions{})
+		if err != nil {
+			log.Println("Error patching devbox ", crd.GetName())
+			return err
+		}
+		log.Println("Patched devbox ", crd.GetName())
 	}
-
 	return err
 }
 
-func (sdk *K8sClient) getRuntimeRef(name, namespace string) (string, error) {
-	unstructuredObj, err := sdk.DynamicClient.Resource(getDevboxSchema()).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
+func (sdk *K8sClient) getAllDevbox() (*unstructured.UnstructuredList, error) {
+	return sdk.DynamicClient.Resource(getDevboxSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
+}
+
+func (sdk *K8sClient) getRuntimeNameAndVersion(name, namespace string) (string, string, error) {
+	runtimeRef, err := sdk.getDevboxRuntimeRef(name, namespace)
 	if err != nil {
 		log.Printf("Error getting CRD instance: %s\n", err.Error())
+		return "", "", err
+	}
+	unstructuredObj, err := sdk.DynamicClient.Resource(getRuntimeSchema()).Namespace("devbox-system").Get(context.Background(), runtimeRef, metav1.GetOptions{})
+	if err != nil {
+		log.Printf("Error getting runtime CRD instance: %s\n", err.Error())
+		return "", "", err
+	}
+	n, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "classRef")
+	if err != nil || !found {
+		log.Println("spec field not found or error occurred")
+		return "", "", err
+	}
+	version, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "version")
+	if err != nil || !found {
+		log.Println("spec field not found or error occurred")
+		return "", "", err
+	}
+	return n, version, nil
+}
+
+func (sdk *K8sClient) getDevboxRuntimeRef(name, namespace string) (string, error) {
+	unstructuredObj, err := sdk.DynamicClient.Resource(getDevboxSchema()).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
+	if err != nil {
+		log.Printf("Error getting devbox CRD instance: %s\n", err.Error())
 		return "", err
 	}
 	runtimeRefName, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "runtimeRef", "name")
