@@ -27,6 +27,10 @@ func newGenCmd() *cobra.Command {
 }
 
 func genAction(cmd *cobra.Command, args []string) error {
+	return gen(kind, name, version, image, path)
+}
+
+func gen(kind, name, version, image, path string) error {
 	config := util.ParseJson(path)
 	if config == nil {
 		return fmt.Errorf("failed to parse config.json")
@@ -85,7 +89,7 @@ func genAction(cmd *cobra.Command, args []string) error {
 		config.Runtime.OS = runtimeVersions
 	}
 
-	saveConfig(config)
+	saveConfig(path, config)
 	return nil
 }
 
@@ -122,7 +126,7 @@ func getRuntimeVersions(config *model.Config, kind string) []model.RuntimeVersio
 	}
 }
 
-func saveConfig(config *model.Config) {
+func saveConfig(path string, config *model.Config) {
 	file, _ := json.MarshalIndent(config, "", "  ")
 	_ = ioutil.WriteFile(path, file, 0644)
 }

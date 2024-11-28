@@ -36,9 +36,7 @@ func Init(path string) *K8sClient {
 }
 
 func (sdk *K8sClient) Patch() error {
-
 	crdList, err := sdk.getAllDevbox()
-
 	for _, crd := range crdList.Items {
 		name, version, err := sdk.getRuntimeNameAndVersion(crd.GetName(), crd.GetNamespace())
 		if err != nil {
@@ -74,6 +72,14 @@ func (sdk *K8sClient) Patch() error {
 
 func (sdk *K8sClient) getAllDevbox() (*unstructured.UnstructuredList, error) {
 	return sdk.DynamicClient.Resource(getDevboxSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
+}
+
+func (sdk *K8sClient) GetAllRuntime() (*unstructured.UnstructuredList, error) {
+	return sdk.DynamicClient.Resource(getRuntimeSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
+}
+
+func (sdk *K8sClient) GetRuntimeClass(name string) (*unstructured.Unstructured, error) {
+	return sdk.DynamicClient.Resource(getRuntimeClassSchema()).Namespace("devbox-system").Get(context.Background(), name, metav1.GetOptions{})
 }
 
 func (sdk *K8sClient) getRuntimeNameAndVersion(name, namespace string) (string, string, error) {
@@ -127,5 +133,13 @@ func getRuntimeSchema() schema.GroupVersionResource {
 		Group:    "devbox.sealos.io",
 		Version:  "v1alpha1",
 		Resource: "runtimes",
+	}
+}
+
+func getRuntimeClassSchema() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "devbox.sealos.io",
+		Version:  "v1alpha1",
+		Resource: "runtimeclasses",
 	}
 }
