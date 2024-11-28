@@ -60,7 +60,7 @@ func genAction(cmd *cobra.Command, args []string) error {
 				runtimeVersions[i].Version = append(runtimeVersions[i].Version, model.Version{
 					Name:   version,
 					Image:  image,
-					Config: "{ports:\n  [ {containerPort: 22,\n  name: devbox-ssh-port,\n protocol: TCP}]\n  appPorts:\n  [{port: 8080,\n  name: devbox-app-port,\n  protocol: TCP}]\n  user: devbox,\n  workingDir: /home/devbox/project,\n  releaseCommand:\n    [/bin/bash\n , -c]\n  releaseArgs:\n   [/home/devbox/project/entrypoint.sh]}",
+					Config: formatConfig(),
 				})
 				updated = true
 			}
@@ -76,7 +76,7 @@ func genAction(cmd *cobra.Command, args []string) error {
 				{
 					Name:   version,
 					Image:  image,
-					Config: "{ports:\n  [ {containerPort: 22,\n  name: devbox-ssh-port,\n protocol: TCP}]\n  appPorts:\n  [{port: 8080,\n  name: devbox-app-port,\n  protocol: TCP}]\n  user: devbox,\n  workingDir: /home/devbox/project,\n  releaseCommand:\n    [/bin/bash\n , -c]\n  releaseArgs:\n   [/home/devbox/project/entrypoint.sh]}",
+					Config: formatConfig(),
 				},
 			},
 		})
@@ -96,6 +96,24 @@ func genAction(cmd *cobra.Command, args []string) error {
 
 	saveConfig(config)
 	return nil
+}
+
+func formatConfig() string {
+	config := map[string]interface{}{
+		"ports": []map[string]interface{}{
+			{"containerPort": 22, "name": "devbox-ssh-port", "protocol": "TCP"},
+		},
+		"appPorts": []map[string]interface{}{
+			{"port": 8080, "name": "devbox-app-port", "protocol": "TCP"},
+		},
+		"user":           "devbox",
+		"workingDir":     "/home/devbox/project",
+		"releaseCommand": []string{"/bin/bash", "-c"},
+		"releaseArgs":    []string{"/home/devbox/project/entrypoint.sh"},
+	}
+
+	configBytes, _ := json.Marshal(config)
+	return string(configBytes)
 }
 
 func getRuntimeVersions(config *model.Config, kind string) []model.RuntimeVersion {
