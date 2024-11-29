@@ -3,7 +3,6 @@ package sdk
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -38,21 +37,15 @@ func Init(path string) *K8sClient {
 func (sdk *K8sClient) Patch() error {
 	crdList, err := sdk.getAllDevbox()
 	for _, crd := range crdList.Items {
-		name, version, err := sdk.getRuntimeNameAndVersion(crd.GetName(), crd.GetNamespace())
+		name, version, image, err := sdk.getRuntimeNameAndVersionAndImage(crd.GetName(), crd.GetNamespace())
 		if err != nil {
 			return err
 		}
 
-		key := fmt.Sprintf("%s-%s", name, version)
-		templates, err := dao.GetTemplates()
-		if err != nil {
-			log.Println("Error getting templates: ", err)
-			return err
-		}
-
+		templateUID, _ := dao.GetTemplateID(name, version, image)
 		patchData := map[string]interface{}{
 			"spec": map[string]interface{}{
-				"templateID": templates[key],
+				"templateID": templateUID,
 			},
 		}
 		patchBytes, err := json.Marshal(patchData)
@@ -82,28 +75,33 @@ func (sdk *K8sClient) GetRuntimeClass(name string) (*unstructured.Unstructured, 
 	return sdk.DynamicClient.Resource(getRuntimeClassSchema()).Namespace("devbox-system").Get(context.Background(), name, metav1.GetOptions{})
 }
 
-func (sdk *K8sClient) getRuntimeNameAndVersion(name, namespace string) (string, string, error) {
+func (sdk *K8sClient) getRuntimeNameAndVersionAndImage(name, namespace string) (string, string, string, error) {
 	runtimeRef, err := sdk.getDevboxRuntimeRef(name, namespace)
 	if err != nil {
 		log.Printf("Error getting CRD instance: %s\n", err.Error())
-		return "", "", err
+		return "", "", "", err
 	}
 	unstructuredObj, err := sdk.DynamicClient.Resource(getRuntimeSchema()).Namespace("devbox-system").Get(context.Background(), runtimeRef, metav1.GetOptions{})
 	if err != nil {
 		log.Printf("Error getting runtime CRD instance: %s\n", err.Error())
-		return "", "", err
+		return "", "", "", err
 	}
 	n, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "classRef")
 	if err != nil || !found {
 		log.Println("spec field not found or error occurred")
-		return "", "", err
+		return "", "", "", err
 	}
 	version, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "version")
 	if err != nil || !found {
 		log.Println("spec field not found or error occurred")
-		return "", "", err
+		return "", "", "", err
 	}
-	return n, version, nil
+	image, found, err := unstructured.NestedString(unstructuredObj.Object, "spec", "config", "image")
+	if err != nil || !found {
+		log.Println("spec field not found or error occurred")
+		return "", "", "", err
+	}
+	return n, version, image, nil
 }
 
 func (sdk *K8sClient) getDevboxRuntimeRef(name, namespace string) (string, error) {

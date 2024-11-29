@@ -135,3 +135,19 @@ func GetTemplates() (map[string]string, error) {
 	}
 	return data, nil
 }
+
+func GetTemplateID(class, version, image string) (string, error) {
+	var template model.Template
+	var templateRepository model.TemplateRepository
+	result := DB.Model(&model.TemplateRepository{}).Where(&model.TemplateRepository{Name: class}).First(&templateRepository).Error
+	if result != nil {
+		log.Println("Error getting template repository:", result)
+		return "", result
+	}
+	result = DB.Model(&model.Template{}).Where(&model.Template{
+		TemplateRepositoryUid: templateRepository.UID,
+		Name:                  version,
+		Image:                 image,
+	}).First(&template).Error
+	return template.UID, result
+}
