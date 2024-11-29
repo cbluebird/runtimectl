@@ -13,7 +13,7 @@ import (
 func newGenCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "gen",
-		Short: "gen the json for database",
+		Short: "gen the json in config.json ",
 		RunE:  genAction,
 	}
 
@@ -22,15 +22,16 @@ func newGenCmd() *cobra.Command {
 	cmd.Flags().StringVar(&version, "version", "", "Version of the runtime")
 	cmd.Flags().StringVar(&image, "image", "", "Image of the runtime")
 	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
+	cmd.Flags().BoolVar(&active, "active", false, "Force update the runtime")
 
 	return cmd
 }
 
 func genAction(cmd *cobra.Command, args []string) error {
-	return gen(kind, name, version, image, path)
+	return gen(kind, name, version, image, path, active)
 }
 
-func gen(kind, name, version, image, path string) error {
+func gen(kind, name, version, image, path string, active bool) error {
 	config := util.ParseJson(path)
 	if config == nil {
 		return fmt.Errorf("failed to parse config.json")
@@ -42,20 +43,37 @@ func gen(kind, name, version, image, path string) error {
 	}
 
 	updated := false
+	state := "deprecated"
+	if active {
+		state = "active"
+	}
+
 	for i, rv := range runtimeVersions {
 		if rv.Name == name {
 			for j, v := range rv.Version {
 				if v.Name == version {
-					runtimeVersions[i].Version[j].Image = image
-					updated = true
-					break
+					if active {
+						if v.Image != image {
+							runtimeVersions[i].Version[j].State = "deprecated"
+						} else {
+							updated = true
+							runtimeVersions[i].Version[j].State = state
+						}
+					} else {
+						if v.Image == image {
+							runtimeVersions[i].Version[j].State = state
+							updated = true
+						}
+					}
 				}
 			}
+
 			if !updated {
 				runtimeVersions[i].Version = append(runtimeVersions[i].Version, model.Version{
 					Name:   version,
 					Image:  image,
 					Config: formatConfig(),
+					State:  state,
 				})
 				updated = true
 			}
@@ -72,6 +90,7 @@ func gen(kind, name, version, image, path string) error {
 					Name:   version,
 					Image:  image,
 					Config: formatConfig(),
+					State:  state,
 				},
 			},
 		})

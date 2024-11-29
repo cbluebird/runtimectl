@@ -4,6 +4,7 @@ type Version struct {
 	Name   string `json:"name"`
 	Image  string `json:"image"`
 	Config string `json:"config"`
+	State  string `json:"state"`
 }
 
 type RuntimeVersion struct {

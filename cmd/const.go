@@ -8,4 +8,5 @@ var (
 	path       string
 	k8sConfig  string
 	outputFile string
+	active     bool
 )

@@ -25,15 +25,13 @@ func exportAction(cmd *cobra.Command, args []string) error {
 	}
 	for _, r := range runtimeList.Items {
 		active, _, _ := unstructured.NestedString(r.Object, "spec", "state")
-		if active != "active" {
-			continue
-		}
 		class, _, _ := unstructured.NestedString(r.Object, "spec", "classRef")
 		runtimeClass, err := k8sClient.GetRuntimeClass(class)
 		kind, _, _ := unstructured.NestedString(runtimeClass.Object, "spec", "kind")
 		version, _, _ := unstructured.NestedString(r.Object, "spec", "version")
 		image, _, _ := unstructured.NestedString(r.Object, "spec", "config", "image")
-		if err = gen(kind, class, version, image, outputFile); err != nil {
+		state := "active" == active
+		if err = gen(kind, class, version, image, outputFile, state); err != nil {
 			return err
 		}
 	}
