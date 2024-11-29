@@ -59,7 +59,7 @@ func sync(kind string, runtime []model.RuntimeVersion) error {
 		}
 		t := dao.GetTemplateRepository(o.Name)
 		for _, version := range o.Version {
-			if err := dao.CreateOrUpdateTemplate(version.Name, t.UID, version.Image, version.Config); err != nil {
+			if err := dao.CreateOrUpdateTemplate(version.Name, t.UID, version.Image, version.Config, version.State); err != nil {
 				fmt.Println("Error creating or updating template:", err)
 				return err
 			}

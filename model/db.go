@@ -34,16 +34,17 @@ func (TemplateRepository) TableName() string {
 }
 
 type Template struct {
-	UID                   string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name                  string     `gorm:"not null;uniqueIndex:idx_version_template_repo_uid"`
-	TemplateRepositoryUid string     `gorm:"column:templateRepositoryUid;not null;uniqueIndex:idx_version_template_repo_uid"`
-	DevboxReleaseImage    *string    `gorm:"column:devboxReleaseImage"`
-	Image                 string     `gorm:"not null"`
-	Config                string     `gorm:"not null"`
-	DeletedAt             *time.Time `gorm:"column:deletedAt;index"`
-	CreatedAt             time.Time  `gorm:"column:createdAt;not null;default:current_timestamp"`
-	UpdatedAt             time.Time  `gorm:"column:updatedAt;not null"`
-	ParentUid             *string    `gorm:"column:parentUid;type:uuid"`
+	UID                   string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Name                  string    `gorm:"not null;uniqueIndex:idx_version_template_repo_uid"`
+	TemplateRepositoryUid string    `gorm:"column:templateRepositoryUid;not null;uniqueIndex:idx_version_template_repo_uid"`
+	DevboxReleaseImage    *string   `gorm:"column:devboxReleaseImage"`
+	Image                 string    `gorm:"not null"`
+	Config                string    `gorm:"not null"`
+	DeletedAt             time.Time `gorm:"column:deletedAt;index"`
+	CreatedAt             time.Time `gorm:"column:createdAt;not null;default:current_timestamp"`
+	UpdatedAt             time.Time `gorm:"column:updatedAt;not null"`
+	ParentUid             *string   `gorm:"column:parentUid;type:uuid"`
+	IsDeleted             bool      `gorm:"column:isDeleted;default:false;not null"`
 }
 
 func (Template) TableName() string {

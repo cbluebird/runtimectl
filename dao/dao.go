@@ -8,6 +8,7 @@ import (
 	"log"
 	"runtimectl/config"
 	"runtimectl/model"
+	"time"
 )
 
 var DB *gorm.DB
@@ -71,12 +72,19 @@ func GetTemplateRepository(name string) *model.TemplateRepository {
 	return t
 }
 
-func CreateOrUpdateTemplate(version, repoUid, image, config string) error {
+func CreateOrUpdateTemplate(version, repoUid, image, config, state string) error {
+	deleteFlag := state == "active"
+	var deleteTime time.Time
+	if deleteFlag {
+		deleteTime = time.Now()
+	}
 	template := model.Template{
 		Name:                  version,
 		TemplateRepositoryUid: repoUid,
 		Image:                 image,
 		Config:                config,
+		IsDeleted:             deleteFlag,
+		DeletedAt:             deleteTime,
 	}
 
 	tmp := model.Template{}
@@ -96,6 +104,7 @@ func CreateOrUpdateTemplate(version, repoUid, image, config string) error {
 	result = DB.Model(&model.Template{}).Where(&model.Template{
 		Name:                  version,
 		TemplateRepositoryUid: repoUid,
+		Image:                 image,
 	}).First(&tmp).Error
 
 	if errors.Is(result, gorm.ErrRecordNotFound) {

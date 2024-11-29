@@ -22,7 +22,7 @@ func newGenCmd() *cobra.Command {
 	cmd.Flags().StringVar(&version, "version", "", "Version of the runtime")
 	cmd.Flags().StringVar(&image, "image", "", "Image of the runtime")
 	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
-	cmd.Flags().BoolVar(&active, "active", false, "Force update the runtime")
+	cmd.Flags().BoolVar(&active, "active", true, "Force update the runtime")
 
 	return cmd
 }
