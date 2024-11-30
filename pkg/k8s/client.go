@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -11,6 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"log"
 	"runtimectl/dao"
+	"runtimectl/pkg/util"
+	"time"
 )
 
 type K8sClient struct {
@@ -61,6 +64,74 @@ func (sdk *K8sClient) Patch() error {
 		log.Println("Patched devbox ", crd.GetName())
 	}
 	return err
+}
+
+func (sdk *K8sClient) SyncToDB() error {
+	runtimeList, err := sdk.GetAllRuntime()
+	if err != nil {
+		return err
+	}
+	for _, r := range runtimeList.Items {
+		active, _, _ := unstructured.NestedString(r.Object, "spec", "state")
+		class, _, _ := unstructured.NestedString(r.Object, "spec", "classRef")
+		runtimeClass, err := sdk.GetRuntimeClass(class)
+		kind, _, _ := unstructured.NestedString(runtimeClass.Object, "spec", "kind")
+		kind = parseKind(kind)
+
+		version, _, _ := unstructured.NestedString(r.Object, "spec", "version")
+		image, _, _ := unstructured.NestedString(r.Object, "spec", "config", "image")
+		deleteTime, found, _ := unstructured.NestedString(r.Object, "spec", "runtimeVersion")
+
+		if !found || deleteTime == "" {
+			deleteTime = util.RandomDateString()
+		}
+		parsedTime, err := time.Parse("2006-01-02-1504", deleteTime)
+		if err != nil {
+			fmt.Println("Error parsing time:", err)
+			return err
+		}
+
+		config, err := sdk.getRuntimeConfig(r)
+
+		if err := dao.CreateOrUpdateTemplateRepository(class, kind); err != nil {
+			fmt.Println("Error creating or updating template repository:", err)
+			return err
+		}
+		t := dao.GetTemplateRepository(class)
+		if err := dao.CreateOrUpdateTemplate(version, t.UID, image, config, active, parsedTime); err != nil {
+			fmt.Println("Error creating or updating template:", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func parseKind(kind string) string {
+	switch kind {
+	case "Framework":
+		return "FRAMEWORK"
+	case "Language":
+		return "LANGUAGE"
+	case "OS":
+		return "OS"
+	case "Custom":
+		return "CUSTOM"
+	}
+	return ""
+}
+
+func (sdk *K8sClient) getRuntimeConfig(r unstructured.Unstructured) (string, error) {
+	configData, found, err := unstructured.NestedMap(r.Object, "spec", "config")
+	if err != nil || !found {
+		fmt.Println("spec.config not found or error occurred")
+		return "", err
+	}
+	delete(configData, "image")
+	config, err := json.MarshalIndent(configData, "", "  ")
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(config), nil
 }
 
 func (sdk *K8sClient) getAllDevbox() (*unstructured.UnstructuredList, error) {

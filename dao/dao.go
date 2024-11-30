@@ -72,20 +72,23 @@ func GetTemplateRepository(name string) *model.TemplateRepository {
 	return t
 }
 
-func CreateOrUpdateTemplate(version, repoUid, image, config, state string) error {
+func CreateOrUpdateTemplate(version, repoUid, image, config, state string, deleteTime time.Time) error {
 	deleteFlag := state == "active"
-	var deleteTime time.Time
-	if deleteFlag {
-		deleteTime = time.Now()
-	}
+
 	template := model.Template{
 		Name:                  version,
 		TemplateRepositoryUid: repoUid,
 		Image:                 image,
 		Config:                config,
-		IsDeleted:             deleteFlag,
-		DeletedAt:             deleteTime,
 	}
+
+	if !deleteFlag {
+		template.DeletedTime = &deleteTime
+	} else {
+		template.DeletedTime = nil
+	}
+
+	log.Println("updating template:", template.DeletedTime)
 
 	tmp := model.Template{}
 	result := DB.Model(&model.Template{}).Where(&model.Template{
@@ -93,18 +96,7 @@ func CreateOrUpdateTemplate(version, repoUid, image, config, state string) error
 		TemplateRepositoryUid: repoUid,
 		Image:                 image,
 		Config:                config,
-	}).First(&tmp).Error
-
-	if result == nil {
-		return nil
-	}
-
-	log.Println("result:", tmp)
-
-	result = DB.Model(&model.Template{}).Where(&model.Template{
-		Name:                  version,
-		TemplateRepositoryUid: repoUid,
-		Image:                 image,
+		DeletedTime:           template.DeletedTime,
 	}).First(&tmp).Error
 
 	if errors.Is(result, gorm.ErrRecordNotFound) {
