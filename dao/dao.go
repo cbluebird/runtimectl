@@ -96,7 +96,6 @@ func CreateOrUpdateTemplate(version, repoUid, image, config, state string, delet
 		TemplateRepositoryUid: repoUid,
 		Image:                 image,
 		Config:                config,
-		DeletedTime:           template.DeletedTime,
 	}).First(&tmp).Error
 
 	if errors.Is(result, gorm.ErrRecordNotFound) {
