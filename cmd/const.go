@@ -9,4 +9,5 @@ var (
 	k8sConfig  string
 	outputFile string
 	active     bool
+	port       int
 )

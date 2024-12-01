@@ -91,7 +91,7 @@ func (sdk *K8sClient) SyncToDB() error {
 			return err
 		}
 
-		config, err := sdk.getRuntimeConfig(r)
+		config, err := sdk.GetRuntimeConfig(r)
 
 		if err := dao.CreateOrUpdateTemplateRepository(class, kind); err != nil {
 			fmt.Println("Error creating or updating template repository:", err)
@@ -120,7 +120,7 @@ func parseKind(kind string) string {
 	return ""
 }
 
-func (sdk *K8sClient) getRuntimeConfig(r unstructured.Unstructured) (string, error) {
+func (sdk *K8sClient) GetRuntimeConfig(r unstructured.Unstructured) (string, error) {
 	configData, found, err := unstructured.NestedMap(r.Object, "spec", "config")
 	if err != nil || !found {
 		fmt.Println("spec.config not found or error occurred")

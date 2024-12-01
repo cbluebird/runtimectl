@@ -9,7 +9,7 @@ import (
 
 func TestJson(t *testing.T) {
 	// Replace single quotes with double quotes to make it a valid JSON string
-	configStr := "{\"appPorts\":[{\"name\":\"devbox-app-port\",\"port\":8080,\"protocol\":\"TCP\"}],\"ports\":[{\"containerPort\":22,\"name\":\"devbox-ssh-port\",\"protocol\":\"TCP\"}],\"releaseArgs\":[\"/home/devbox/project/entrypoint.sh\"],\"releaseCommand\":[\"/bin/bash\",\"-c\"],\"user\":\"devbox\",\"workingDir\":\"/home/devbox/project\"}"
+	configStr := "{\n  \"appPorts\": [\n    {\n      \"name\": \"devbox-app-port\",\n      \"port\": 4200,\n      \"protocol\": \"TCP\"\n    }\n  ],\n  \"ports\": [\n    {\n      \"containerPort\": 22,\n      \"name\": \"devbox-ssh-port\",\n      \"protocol\": \"TCP\"\n    }\n  ],\n  \"releaseArgs\": [\n    \"/home/devbox/project/entrypoint.sh\"\n  ],\n  \"releaseCommand\": [\n    \"/bin/bash\",\n    \"-c\"\n  ],\n  \"user\": \"devbox\",\n  \"workingDir\": \"/home/devbox/project\"\n}"
 
 	var config map[string]interface{}
 	err := json.Unmarshal([]byte(configStr), &config)

@@ -23,15 +23,16 @@ func newGenCmd() *cobra.Command {
 	cmd.Flags().StringVar(&image, "image", "", "Image of the runtime")
 	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
 	cmd.Flags().BoolVar(&active, "active", true, "Force update the runtime")
+	cmd.Flags().IntVar(&port, "port", 8080, "Port of the runtime")
 
 	return cmd
 }
 
 func genAction(cmd *cobra.Command, args []string) error {
-	return gen(kind, name, version, image, path, active)
+	return gen(kind, name, version, image, path, active, port)
 }
 
-func gen(kind, name, version, image, path string, active bool) error {
+func gen(kind, name, version, image, path string, active bool, port int) error {
 	config := util.ParseJson(path)
 	if config == nil {
 		return fmt.Errorf("failed to parse config.json")
@@ -72,7 +73,7 @@ func gen(kind, name, version, image, path string, active bool) error {
 				runtimeVersions[i].Version = append(runtimeVersions[i].Version, model.Version{
 					Name:   version,
 					Image:  image,
-					Config: formatConfig(),
+					Config: formatConfig(port),
 					State:  state,
 				})
 				updated = true
@@ -89,7 +90,7 @@ func gen(kind, name, version, image, path string, active bool) error {
 				{
 					Name:   version,
 					Image:  image,
-					Config: formatConfig(),
+					Config: formatConfig(port),
 					State:  state,
 				},
 			},
@@ -112,13 +113,13 @@ func gen(kind, name, version, image, path string, active bool) error {
 	return nil
 }
 
-func formatConfig() string {
+func formatConfig(port int) string {
 	config := map[string]interface{}{
 		"ports": []map[string]interface{}{
 			{"containerPort": 22, "name": "devbox-ssh-port", "protocol": "TCP"},
 		},
 		"appPorts": []map[string]interface{}{
-			{"port": 8080, "name": "devbox-app-port", "protocol": "TCP"},
+			{"port": port, "name": "devbox-app-port", "protocol": "TCP"},
 		},
 		"user":           "devbox",
 		"workingDir":     "/home/devbox/project",
