@@ -73,19 +73,17 @@ func GetTemplateRepository(name string) *model.TemplateRepository {
 }
 
 func CreateOrUpdateTemplate(version, repoUid, image, config, state string, deleteTime time.Time) error {
-	deleteFlag := state == "active"
-
+	flag := state == "active"
 	template := model.Template{
 		Name:                  version,
 		TemplateRepositoryUid: repoUid,
 		Image:                 image,
 		Config:                config,
 	}
-
-	if !deleteFlag {
-		template.DeletedTime = &deleteTime
-	} else {
+	if flag {
 		template.DeletedTime = nil
+	} else {
+		template.DeletedTime = &deleteTime
 	}
 
 	log.Println("updating template:", template.DeletedTime)
@@ -99,13 +97,33 @@ func CreateOrUpdateTemplate(version, repoUid, image, config, state string, delet
 	}).First(&tmp).Error
 
 	if errors.Is(result, gorm.ErrRecordNotFound) {
-		if result = DB.Create(&template).Error; result != nil {
-			return result
+		if flag {
+			sql := `INSERT INTO "Template" ("name", "templateRepositoryUid", "image", "config", "isDeleted", "deletedAt", "createdAt", "updatedAt", "parentUid") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			if err := DB.Exec(sql, template.Name, template.TemplateRepositoryUid, template.Image, template.Config, false, template.DeletedTime, time.Now(), time.Now(), template.ParentUid).Error; err != nil {
+				return err
+			}
+		} else {
+			sql := `INSERT INTO "Template" ("name", "templateRepositoryUid", "image", "config", "isDeleted", "deletedAt", "createdAt", "updatedAt", "parentUid") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			if err := DB.Exec(sql, template.Name, template.TemplateRepositoryUid, template.Image, template.Config, nil, template.DeletedTime, time.Now(), time.Now(), template.ParentUid).Error; err != nil {
+				return err
+			}
 		}
 		return nil
 	}
 
-	return DB.Model(&model.Template{}).Where(&model.Template{UID: tmp.UID}).Updates(&template).Error
+	if flag {
+		sql := `UPDATE "Template" SET "image" = ?, "config" = ?, "isDeleted" = ?, "deletedAt" = ?, "updatedAt" = ? WHERE "uid" = ?`
+		if err := DB.Exec(sql, template.Image, template.Config, false, template.DeletedTime, time.Now(), tmp.UID).Error; err != nil {
+			return err
+		}
+	} else {
+		sql := `UPDATE "Template" SET "image" = ?, "config" = ?, "isDeleted" = ?, "deletedAt" = ?, "updatedAt" = ? WHERE "uid" = ?`
+		if err := DB.Exec(sql, template.Image, template.Config, nil, template.DeletedTime, time.Now(), tmp.UID).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func GetTemplates() (map[string]string, error) {

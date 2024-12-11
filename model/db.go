@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Organization struct {
 	UID       string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -22,11 +24,10 @@ type TemplateRepository struct {
 	UpdatedAt       time.Time  `gorm:"column:updatedAt;not null"`
 	Name            string     `gorm:"not null"`
 	Description     string
-	OrganizationUid string  `gorm:"column:organizationUid;not null"`
-	IsPublic        bool    `gorm:"column:isPublic;default:false;not null"`
-	IconId          string  `gorm:"column:iconId"`
-	Kind            string  `gorm:"not null"`
-	ParentUid       *string `gorm:"column:parentUid;type:uuid"`
+	OrganizationUid string `gorm:"column:organizationUid;not null"`
+	IsPublic        bool   `gorm:"column:isPublic;default:false;not null"`
+	IconId          string `gorm:"column:iconId"`
+	Kind            string `gorm:"not null"`
 }
 
 func (TemplateRepository) TableName() string {
@@ -44,6 +45,7 @@ type Template struct {
 	CreatedAt             time.Time  `gorm:"column:createdAt;not null;default:current_timestamp"`
 	UpdatedAt             time.Time  `gorm:"column:updatedAt;not null"`
 	ParentUid             *string    `gorm:"column:parentUid;type:uuid"`
+	IsDeleted             bool       `gorm:"column:isDeleted;default:null"`
 }
 
 func (Template) TableName() string {
