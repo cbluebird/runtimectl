@@ -50,6 +50,11 @@ func (sdk *K8sClient) Patch() error {
 			"spec": map[string]interface{}{
 				"templateID": templateUID,
 			},
+			"metadata": map[string]interface{}{
+				"labels": map[string]string{
+					"devbox.sealos.io/patched": "true",
+				},
+			},
 		}
 		patchBytes, err := json.Marshal(patchData)
 		if err != nil {
