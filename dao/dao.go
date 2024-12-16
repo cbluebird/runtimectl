@@ -19,7 +19,7 @@ func Init() {
 	port := config.Config.GetString("database.port")
 	host := config.Config.GetString("database.host")
 	name := config.Config.GetString("database.name")
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v TimeZone=Asia/Shanghai", host, user, pass, name, port)
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=require TimeZone=Asia/Shanghai", host, user, pass, name, port)
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

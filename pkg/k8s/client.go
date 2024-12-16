@@ -80,7 +80,12 @@ func (sdk *K8sClient) SyncToDB() error {
 		active, _, _ := unstructured.NestedString(r.Object, "spec", "state")
 		class, _, _ := unstructured.NestedString(r.Object, "spec", "classRef")
 		runtimeClass, err := sdk.GetRuntimeClass(class)
-		kind, _, _ := unstructured.NestedString(runtimeClass.Object, "spec", "kind")
+		if err != nil {
+			log.Println("Error getting runtime class:", err)
+			log.Println("Error runtimeclass:", runtimeClass)
+			log.Println("Error runtime:", class)
+		}
+		kind, _, err := unstructured.NestedString(runtimeClass.Object, "spec", "kind")
 		kind = parseKind(kind)
 
 		version, _, _ := unstructured.NestedString(r.Object, "spec", "version")
@@ -140,7 +145,21 @@ func (sdk *K8sClient) GetRuntimeConfig(r unstructured.Unstructured) (string, err
 }
 
 func (sdk *K8sClient) getAllDevbox() (*unstructured.UnstructuredList, error) {
-	return sdk.DynamicClient.Resource(getDevboxSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
+	// Retrieve all devbox resources
+	allDevboxes, err := sdk.DynamicClient.Resource(getDevboxSchema()).Namespace("").List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out devboxes that have the label "devbox.sealos.io/patched" set to "true"
+	filteredDevboxes := &unstructured.UnstructuredList{}
+	for _, devbox := range allDevboxes.Items {
+		labels := devbox.GetLabels()
+		if labels == nil || labels["devbox.sealos.io/patched"] != "true" {
+			filteredDevboxes.Items = append(filteredDevboxes.Items, devbox)
+		}
+	}
+	return filteredDevboxes, nil
 }
 
 func (sdk *K8sClient) GetAllRuntime() (*unstructured.UnstructuredList, error) {
