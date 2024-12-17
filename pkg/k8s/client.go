@@ -40,6 +40,7 @@ func Init(path string) *K8sClient {
 func (sdk *K8sClient) Patch() error {
 	crdList, err := sdk.getAllDevbox()
 	for _, crd := range crdList.Items {
+		log.Println("Patching devbox ", crd.GetName())
 		name, version, image, err := sdk.getRuntimeNameAndVersionAndImage(crd.GetName(), crd.GetNamespace())
 		if err != nil {
 			return err
