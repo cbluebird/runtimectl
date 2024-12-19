@@ -126,6 +126,11 @@ func CreateOrUpdateTemplate(version, repoUid, image, config, state string, delet
 	return nil
 }
 
+func DeprecateTemplates(repoUid string) error {
+	sql := `UPDATE "Template" SET  "deletedAt" = ?, "updatedAt" = ? , "isDeleted"=? WHERE "uid" = ? ,"isDeleted" = ?`
+	return DB.Exec(sql, time.Now(), time.Now(), nil, repoUid, false).Error
+}
+
 func GetTemplates() (map[string]string, error) {
 	var templates []model.Template
 	result := DB.Find(&templates)
