@@ -28,6 +28,7 @@ type TemplateRepository struct {
 	IsPublic        bool   `gorm:"column:isPublic;default:false;not null"`
 	IconId          string `gorm:"column:iconId"`
 	Kind            string `gorm:"not null"`
+	RegionUid       string `gorm:"column:regionUid"`
 }
 
 func (TemplateRepository) TableName() string {

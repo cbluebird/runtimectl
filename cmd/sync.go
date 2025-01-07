@@ -54,7 +54,7 @@ func syncAction(cmd *cobra.Command, args []string) error {
 
 func sync(kind string, runtime []model.RuntimeVersion) error {
 	for _, o := range runtime {
-		if err := dao.CreateOrUpdateTemplateRepository(o.Name, kind); err != nil {
+		if err := dao.CreateOrUpdateTemplateRepository(o.Name, kind, ""); err != nil {
 			fmt.Println("Error creating or updating template repository:", err)
 			return err
 		}

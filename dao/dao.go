@@ -38,7 +38,7 @@ func GetOrganization(name string) (model.Organization, error) {
 	return organization, nil
 }
 
-func CreateOrUpdateTemplateRepository(name, kind string) error {
+func CreateOrUpdateTemplateRepository(name, kind, region string) error {
 	organization, err := GetOrganization("labring")
 	if err != nil {
 		log.Println("Error getting organization:", err)
@@ -62,6 +62,7 @@ func CreateOrUpdateTemplateRepository(name, kind string) error {
 		IconId:          name,
 		OrganizationUid: organization.UID,
 		IsPublic:        true,
+		RegionUid:       region,
 	}
 	return DB.Create(&repo).Error
 }
@@ -127,7 +128,8 @@ func CreateOrUpdateTemplate(version, repoUid, image, config, state string, delet
 }
 
 func DeprecateTemplates(repoUid string) error {
-	sql := `UPDATE "Template" SET  "deletedAt" = ?, "updatedAt" = ? , "isDeleted"=? WHERE "uid" = ? ,"isDeleted" = ?`
+	log.Println("deprecating templates:", repoUid)
+	sql := `UPDATE "Template" SET  "deletedAt" = ?, "updatedAt" = ?, "isDeleted"=? WHERE "templateRepositoryUid" = ? AND "isDeleted" = ?`
 	return DB.Exec(sql, time.Now(), time.Now(), nil, repoUid, false).Error
 }
 

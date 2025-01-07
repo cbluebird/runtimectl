@@ -72,7 +72,7 @@ func (sdk *K8sClient) Patch() error {
 	return err
 }
 
-func (sdk *K8sClient) SyncToDB() error {
+func (sdk *K8sClient) SyncToDB(regin string) error {
 	runtimeList, err := sdk.GetAllRuntime()
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (sdk *K8sClient) SyncToDB() error {
 
 		config, err := sdk.GetRuntimeConfig(r)
 
-		if err := dao.CreateOrUpdateTemplateRepository(class, kind); err != nil {
+		if err := dao.CreateOrUpdateTemplateRepository(class, kind, regin); err != nil {
 			fmt.Println("Error creating or updating template repository:", err)
 			return err
 		}

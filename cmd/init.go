@@ -16,6 +16,7 @@ func newInitCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&path, "path", "config.json", "Path to the config file")
+	cmd.Flags().StringVar(&region, "region", "region-init", "regin")
 	return cmd
 }
 
@@ -23,7 +24,7 @@ func initAction(cmd *cobra.Command, args []string) error {
 	config.Init()
 	dao.Init()
 	k8sClient := client.Init(k8sConfig)
-	if err := k8sClient.SyncToDB(); err != nil {
+	if err := k8sClient.SyncToDB(region); err != nil {
 		log.Println(err)
 	}
 	return nil

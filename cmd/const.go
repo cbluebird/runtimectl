@@ -10,4 +10,5 @@ var (
 	outputFile string
 	active     bool
 	port       int
+	region     string
 )
