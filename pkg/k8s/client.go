@@ -39,18 +39,17 @@ func Init(path string) *K8sClient {
 
 func (sdk *K8sClient) Patch() error {
 	crdList, err := sdk.getAllDevbox()
+	template, err := dao.GetAllTemplateID()
+	if err != nil {
+		return err
+	}
+	log.Println("template", template)
 	for _, crd := range crdList.Items {
 		log.Println("Patching devbox ", crd.GetName())
 		name, version, image, err := sdk.getRuntimeNameAndVersionAndImage(crd.GetName(), crd.GetNamespace())
 		if err != nil {
 			return err
 		}
-
-		template, err := dao.GetAllTemplateID()
-		if err != nil {
-			return err
-		}
-		log.Println("template", template)
 		templateUID, ok := template[name+version+image]
 		if !ok {
 			log.Println("Error getting template ID")
