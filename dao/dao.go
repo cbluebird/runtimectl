@@ -167,3 +167,37 @@ func GetTemplateID(class, version, image string) (string, error) {
 	}).First(&template).Error
 	return template.UID, result
 }
+
+func GetAllTemplateID() (map[string]string, error) {
+	var template []model.Template
+	var templateRepository []model.TemplateRepository
+
+	organization, err := GetOrganization("labring")
+	if err != nil {
+		log.Println("Error getting organization:", err)
+		return nil, err
+	}
+
+	result := DB.Model(&model.TemplateRepository{}).Where(&model.TemplateRepository{
+		OrganizationUid: organization.UID,
+	}).Find(&templateRepository).Error
+
+	if result != nil {
+		return nil, result
+	}
+
+	data := make(map[string]string)
+
+	for _, repo := range templateRepository {
+		result = DB.Model(&model.Template{}).Where(&model.Template{
+			TemplateRepositoryUid: repo.UID,
+		}).Find(&template).Error
+		if result != nil {
+			return nil, result
+		}
+		for _, temp := range template {
+			data[repo.Name+temp.Name+temp.Image] = temp.UID
+		}
+	}
+	return data, nil
+}

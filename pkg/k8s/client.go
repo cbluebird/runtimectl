@@ -46,7 +46,16 @@ func (sdk *K8sClient) Patch() error {
 			return err
 		}
 
-		templateUID, _ := dao.GetTemplateID(name, version, image)
+		template, err := dao.GetAllTemplateID()
+		if err != nil {
+			return err
+		}
+		log.Println("template", template)
+		templateUID, ok := template[name+version+image]
+		if !ok {
+			log.Println("Error getting template ID")
+			return err
+		}
 		patchData := map[string]interface{}{
 			"spec": map[string]interface{}{
 				"templateID": templateUID,
